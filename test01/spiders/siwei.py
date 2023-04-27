@@ -4,6 +4,7 @@ import requests
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
+from test01.spiders.utils.constant import Constants
 
 
 class SiweiSpider(CrawlSpider):
@@ -22,13 +23,14 @@ class SiweiSpider(CrawlSpider):
         print(response.url)
         pages = response.xpath('//img/@src').getall()
 
-        path = 'E:/siwei'
+        path = Constants.FILE_PATH.join('siwei')
+        print(path)
         is_exist = os.path.exists(path)
         if not is_exist:
             os.makedirs(path)
         for page in pages:
             if 'http://' not in page:
-                page = 'http://sw.ateen.cn'+page
+                page = 'http://sw.ateen.cn' + page
             print(page)
             if page not in self.img_list:
                 self.img_list.append(page)
@@ -46,8 +48,9 @@ class SiweiSpider(CrawlSpider):
                 fp.close()
 
     def parse_network(self, response):
-        path = 'E:/siwei/html/'
+        path = Constants.FILE_PATH + ('siwei/html/')
         is_exist = os.path.exists(path)
+        print(path)
         content = response.text
         if not is_exist:
             os.makedirs(path)
@@ -55,6 +58,6 @@ class SiweiSpider(CrawlSpider):
         if not title:
             title = response.url
         print(title)
-        fp = open(path+title, 'w', encoding='utf-8')
+        fp = open(path + title, 'w', encoding='utf-8')
         fp.write(content)
         fp.close()

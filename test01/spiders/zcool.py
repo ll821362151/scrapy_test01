@@ -5,6 +5,8 @@ from scrapy.spiders import CrawlSpider, Rule
 from scrapy_splash import SplashRequest
 import re
 import os
+from test01.spiders.utils.constant import Constants
+
 
 class ZcoolSpider(CrawlSpider):
     name = 'zcool'
@@ -15,7 +17,6 @@ class ZcoolSpider(CrawlSpider):
     rules = (
         Rule(LinkExtractor(allow='https://www.zcool.com.cn/work/(.*?)'), callback='parse1', follow=True),
     )
-
 
     # def start_requests(self):
     #     splah_args = {
@@ -44,7 +45,6 @@ class ZcoolSpider(CrawlSpider):
     #                                 'har': 1,
     #                                 'html': 1,
     #                             })
-
 
     def parse_item(self, response):
         print(response.url)
@@ -86,7 +86,7 @@ class ZcoolSpider(CrawlSpider):
         img_url = response.xpath('//div[@class="photo-information-content"]/img/@src').getall()
         title = response.xpath('//title/text()').get()
         title = title.split('|')[0]
-        path = 'E:/zcool/'+title+"/"
+        path = Constants.FILE_PATH + 'zcool/' + title + "/"
         self.index = 0
         if not os.path.exists(path):
             os.makedirs(path)
@@ -122,5 +122,3 @@ class ZcoolSpider(CrawlSpider):
         #         fp.close()
         #     else:
         #         print("不是url地址：" + url)
-
-
