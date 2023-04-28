@@ -1,0 +1,2 @@
+scrapy genspider -t crawl myspider example.com
+scrapy genspider -c crawl [爬虫名字] [域名]

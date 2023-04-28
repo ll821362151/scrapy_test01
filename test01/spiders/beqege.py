@@ -5,34 +5,40 @@ from scrapy_splash import SplashRequest
 
 class BeqegeSpider(CrawlSpider):
     name = 'beqege'
-    allowed_domains = ['beqege.com']
-    start_urls = ['https://www.beqege.com/']
+    allowed_domains = ['localhost:8080']
+    start_urls = ['http://localhost:8080/']
+
+    lua_source = '''
+    function main(splash, args)
+        -- 访问登录页面
+        splash:go(args.url)
+        splash:wait(1)
+    
+        -- 输入用户名和密码
+        local input_user = splash:select('#input_user')
+        input_user:send_text(args.username)
+        local input_pass = splash:select('#input_pass')
+        input_pass:send_text(args.password)
+
+        -- 点击登录按钮
+        local login_button = splash:select('#login_button')
+        login_button:mouse_click()
+
+        -- 等待页面跳转
+        splash:wait(2)
+
+        -- 获取登录后的cookies
+        local cookies = splash:get_cookies()
+        return {cookies=cookies}
+    end
+    '''
 
     rules = (
-        Rule(LinkExtractor(allow=r'.*'), callback='parse_item', follow=True),
+        Rule(LinkExtractor(allow='.*'), callback='parse_item', follow=True),
     )
 
     def parse_item(self, response):
-        print('parse_item start')
-        yield SplashRequest(response.url, self.parse_content, args={'wait': 0.5}, headers={
-            'authority': 'www.beqege.com',
-            'method': 'GET',
-            'path': '/',
-            'scheme': 'https',
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-            'sec-ch-ua': '"Chromium";v="112", "Microsoft Edge";v="112", "Not:A-Brand";v="99"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-            'sec-fetch-dest': 'document',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'none',
-            'sec-fetch-user': '?1',
-            'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.58'
-        })
-
+        print(response.url)
 
     def parse_content(self, response):
         print(response.text)
