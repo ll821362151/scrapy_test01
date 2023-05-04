@@ -1,2 +1,6 @@
 scrapy genspider -t crawl myspider example.com
 scrapy genspider -c crawl [爬虫名字] [域名]
+
+运行splash的docker服务，并通过浏览器访问8050端口验证安装是否成功
+前台运行 sudo docker run -p 8050:8050 scrapinghub/splash
+后台运行 sudo docker run -d -p 8050:8050 scrapinghub/splash
