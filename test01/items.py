@@ -25,3 +25,26 @@ class CctvXmlbItem(scrapy.Item):
     source = scrapy.Field()
     publishTime = scrapy.Field()
     content = scrapy.Field()
+
+
+class AuthorItem(scrapy.Item):
+    id = scrapy.Field()
+    a_name = scrapy.Field()
+    a_dynasty = scrapy.Field()
+    a_deathtime = scrapy.Field()
+    a_birthday = scrapy.Field()
+    a_remark = scrapy.Field()
+    oper_time = scrapy.Field()
+
+
+class PoemItem(scrapy.Item):
+    id = scrapy.Field()
+    author_name = scrapy.Field()
+    author_info = scrapy.Field()
+    title = scrapy.Field()
+    dynasty = scrapy.Field()
+    content = scrapy.Field()
+    translation_content = scrapy.Field()
+    create_time = scrapy.Field()
+    remark = scrapy.Field()
+    oper_time = scrapy.Field()
