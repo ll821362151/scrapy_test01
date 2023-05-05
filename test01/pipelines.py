@@ -72,20 +72,22 @@ class MySQLPipeline(object):
     def process_item(self, item, spider):
         # 执行SQL语句将数据存储到MySQL数据库中
         with self.conn.cursor() as cursor:
-            select_author = 'select id from s_author where a_name=%s'
-            cursor.execute(select_author, item['author_name'])
-            author_result = cursor.fetchone()
-            if author_result is None:
-                author_params = (
-                    uuid.uuid4(), item['author_name'], item['dynasty'], item['author_info'], datetime.now())
-                insert_author = 'insert into s_author(id,a_name,a_dynasty,a_remark,oper_time) values (%s,%s,%s,%s,%s)'
-                cursor.execute(insert_author, author_params)
+            author_name = item['author_name']
+            if author_name is not None:
+                select_author = 'select id from s_author where a_name=%s'
+                cursor.execute(select_author, item['author_name'])
+                author_result = cursor.fetchone()
+                if author_result is None:
+                    author_params = (
+                        uuid.uuid4(), author_name, item['dynasty'], item['author_info'], datetime.now())
+                    insert_author = 'insert into s_author(id,a_name,a_dynasty,a_remark,oper_time) values (%s,%s,%s,%s,%s)'
+                    cursor.execute(insert_author, author_params)
             select_poem = 'select id from s_poem where title=%s'
             cursor.execute(select_poem, item['title'])
             poem_result = cursor.fetchone()
             if poem_result is None:
                 insert_poem = 'insert into s_poem(id,author_name,title,content,oper_time) values (%s,%s,%s,%s,%s)'
-                poem_params = (uuid.uuid4(), item['author_name'], item['title'], item['content'], datetime.now())
+                poem_params = (uuid.uuid4(), author_name, item['title'], item['content'], datetime.now())
                 cursor.execute(insert_poem, poem_params)
                 print(item['title'])
             self.conn.commit()

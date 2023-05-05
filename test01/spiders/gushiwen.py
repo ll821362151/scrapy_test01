@@ -22,7 +22,8 @@ class GushiwenSpider(CrawlSpider):
             '//div[@id="sonsyuanwen"]/div[@class="cont"]//p[@class="source"]/a[1]/text()').get()
         dynasty = response.xpath(
             '//div[@id="sonsyuanwen"]/div[@class="cont"]//p[@class="source"]/a[2]/text()').get()
-        dynasty = dynasty[1:-1]
+        if dynasty is not None:
+            dynasty = dynasty[1:-1]
         content = response.xpath(
             '//div[@id="sonsyuanwen"]/div[@class="cont"]//div[@class="contson"]//text()').getall()
         author_info = response.xpath('//div[@class="sonspic"]/div[@class="cont"]//p[2]/text()').get()
@@ -32,5 +33,4 @@ class GushiwenSpider(CrawlSpider):
         item['dynasty'] = dynasty
         item['author_info'] = author_info
         item['content'] = ''.join(content).replace("\n", '')
-        # print(item)
         return item
