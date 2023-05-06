@@ -1,17 +1,7 @@
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-import time
 import uuid
 from datetime import datetime
 
 import pymysql
-# useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
-import json
-
-from test01.items import Test01Item, MycwpijItem
 
 
 class Test01Pipeline:
@@ -70,6 +60,20 @@ class MySQLPipeline(object):
         self.conn.close()
 
     def process_item(self, item, spider):
+        item_name = type(item).__name__
+        switcher = {
+            'PoemItem': self.handle_item_poem,
+            'ChapterContentItem': self.handle_item_chapter_content,
+            'BookInfoItem': self.handle_item_book_info
+        }
+        if item_name == 'PoemItem':
+            return self.handle_item_poem(item)
+        elif item_name == 'ChapterContentItem':
+            return self.handle_item_chapter_content(item)
+        elif item_name == 'BookInfoItem':
+            return self.handle_item_book_info(item)
+
+    def handle_item_poem(self, item):
         # 执行SQL语句将数据存储到MySQL数据库中
         with self.conn.cursor() as cursor:
             author_name = item['author_name']
@@ -92,3 +96,75 @@ class MySQLPipeline(object):
                 print(item['title'])
             self.conn.commit()
         return item
+
+    def handle_item_chapter_content(self, item):
+        with self.conn.cursor() as cursor:
+            content = item['content']
+            title_info = item['info']
+            titles = title_info.split('·')
+            title_size = len(titles)
+            book_name = titles[0]
+            book_sql = 'select book_id,parent_id from book_info where book_name=%s'
+            cursor.execute(book_sql, book_name)
+            book_result = cursor.fetchone()
+            if book_result is None:
+                book_uuid = uuid.uuid4()
+                insert_book = 'insert into book_info (book_id,book_name,update_time) values (%s,%s,%s)'
+                insert_book_params = (book_uuid, book_name, datetime.now())
+                cursor.execute(insert_book, insert_book_params)
+            else:
+                book_uuid = book_result['book_id']
+            chapter_book_id = book_uuid
+            if title_size == 3:
+                book_uuid2 = uuid.uuid4()
+                chapter_book_id = book_uuid2
+                book_name2 = titles[1]
+                print('book_name2:' + book_name2)
+                book_sql = 'select book_id from book_info where book_name=%s and parent_name=%s'
+                book_sql_params = (book_name2, book_name)
+                cursor.execute(book_sql, book_sql_params)
+                book_result = cursor.fetchone()
+                if book_result is None:
+                    insert_book = 'insert into book_info (book_id,parent_id,book_name,parent_name,update_time) values (%s,%s,%s,%s,%s)'
+                    insert_book_params = (book_uuid2, book_uuid, book_name2, book_name, datetime.now())
+                    cursor.execute(insert_book, insert_book_params)
+            if title_size > 3:
+                chapter_name = titles[1:-1]
+            else:
+                chapter_name = titles[-1]
+            chapter_id = uuid.uuid4()
+            chapter_sql = 'select chapter_id from chapter_info where chapter_name=%s'
+            cursor.execute(chapter_sql, chapter_name)
+            chapter_result = cursor.fetchone()
+            if chapter_result is None:
+                insert_chapter_info = 'insert into chapter_info(chapter_id,book_id,chapter_name,update_time) values (%s,%s,%s,%s)'
+                insert_chapter_info_params = (chapter_id, chapter_book_id, chapter_name, datetime.now())
+                cursor.execute(insert_chapter_info, insert_chapter_info_params)
+                insert_chapter_content = 'insert into chapter_content(content_id,chapter_id,content) values (%s,%s,%s)'
+                insert_chapter_content_params = (uuid.uuid4(), chapter_id, content)
+                cursor.execute(insert_chapter_content, insert_chapter_content_params)
+            self.conn.commit()
+        return item
+
+    def handle_item_book_info(self, item):
+        with self.conn.cursor() as cursor:
+            book_name = item['book_name']
+            print('book_name:' + book_name)
+            description = item['description']
+            book_sql = 'select book_id from book_info where book_name=%s'
+            cursor.execute(book_sql, book_name)
+            book_result = cursor.fetchone()
+            if book_result is None:
+                insert_book = 'insert into book_info (book_id,book_name,description,update_time) values (%s,%s,%s,%s)'
+                insert_book_params = (uuid.uuid4(), book_name, description, datetime.now())
+                cursor.execute(insert_book, insert_book_params)
+            else:
+                update_book = 'update book_info set description=%s where book_name=%s'
+                update_book_params = (description, book_name)
+                cursor.execute(update_book, update_book_params)
+            self.conn.commit()
+        return item
+
+    def handle_unknown_item_type(self, item):
+        print('handle_unknown_item_type')
+        return

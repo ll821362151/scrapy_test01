@@ -48,3 +48,28 @@ class PoemItem(scrapy.Item):
     create_time = scrapy.Field()
     remark = scrapy.Field()
     oper_time = scrapy.Field()
+
+
+class BookInfoItem(scrapy.Item):
+    book_id = scrapy.Field()
+    parent_id = scrapy.Field()
+    book_name = scrapy.Field()
+    author = scrapy.Field()
+    dynasty = scrapy.Field()
+    description = scrapy.Field()
+    update_time = scrapy.Field()
+
+
+class ChapterContentItem(scrapy.Item):
+    content_id = scrapy.Field()
+    chapter_id = scrapy.Field()
+    content = scrapy.Field()
+    info = scrapy.Field()
+
+
+class ChapterInfoItem(scrapy.Item):
+    chapter_id = scrapy.Field()
+    book_id = scrapy.Field()
+    chapter_name = scrapy.Field()
+    chapter_num = scrapy.Field()
+    update_time = scrapy.Field()

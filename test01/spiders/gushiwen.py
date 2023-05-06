@@ -15,6 +15,9 @@ class GushiwenSpider(CrawlSpider):
     )
 
     def parse_item(self, response):
+        current_url = response.url
+        if "https://so.gushiwen.cn/shiwenv" not in current_url:
+            return
         title = response.xpath('//div[@id="sonsyuanwen"]/div[@class="cont"]//h1/text()').get()
         if not title:
             return
