@@ -36,4 +36,5 @@ class GushiwenSpider(CrawlSpider):
         item['dynasty'] = dynasty
         item['author_info'] = author_info
         item['content'] = ''.join(content).replace("\n", '')
+        print(item)
         return item
