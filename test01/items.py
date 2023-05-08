@@ -73,3 +73,9 @@ class ChapterInfoItem(scrapy.Item):
     chapter_name = scrapy.Field()
     chapter_num = scrapy.Field()
     update_time = scrapy.Field()
+
+
+class CtextBookItem(scrapy.Item):
+    book_category_info=scrapy.Field()
+    book_content=scrapy.Field()
+    book_name=scrapy.Field()

@@ -1,6 +1,7 @@
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
+from test01.items import CtextBookItem
 
 
 class XtextSpider(CrawlSpider):
@@ -17,11 +18,15 @@ class XtextSpider(CrawlSpider):
         if not book_info:
             return
         book_str = ''.join(book_info).split(' -> ')
-        book_str[0] = book_str[0].replace('译文对照：[不显示] [英文翻译] ', '')
+        book_str[0] = book_str[0].replace('译文对照：[不显示] [英文翻译] ', '').replace('译文对照：[不显示] [现代汉语翻译] [英文翻译] ','')
         print(book_str)
         book_name = response.xpath('//div[@class="text"]//div[@id="content3"]//td[@class="ctext"]//text()').getall()
         book_content = response.xpath('//div[@class="text"]//div[@id="content3"]//table[@border="0"]//td[@class="ctext"]//text()').getall()
-        print(book_content)
+        item=CtextBookItem()
+        item['book_category_info']=book_str
+        item['book_name']=book_name
+        item['book_content']=book_content
+        return item
 
 
 
