@@ -4,6 +4,10 @@ from scrapy.spiders import CrawlSpider, Rule
 
 from test01.items import PoemItem
 
+'''
+zhw 古诗词
+'''
+
 
 class PoetryZhwSpider(CrawlSpider):
     name = 'poetry_zhw'

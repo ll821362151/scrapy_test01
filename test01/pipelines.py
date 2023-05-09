@@ -69,6 +69,10 @@ class MySQLPipeline(object):
             return self.handle_item_book_info(item)
         elif item_name == 'CtextBookItem':
             return self.handle_ctext_item(item)
+        elif item_name == 'AuthorItem':
+            return self.handle_item_author(item)
+        elif item_name == 'PoetCategoryItem':
+            return self.handle_item_poet_category(item)
 
     def handle_item_poem(self, item):
         # 执行SQL语句将数据存储到MySQL数据库中
@@ -146,7 +150,6 @@ class MySQLPipeline(object):
     def handle_item_book_info(self, item):
         with self.conn.cursor() as cursor:
             book_name = item['book_name']
-            print('book_name:' + book_name)
             description = item['description']
             book_sql = 'select book_id from book_info where book_name=%s'
             cursor.execute(book_sql, book_name)
@@ -156,9 +159,10 @@ class MySQLPipeline(object):
                 insert_book_params = (uuid.uuid4(), book_name, description, datetime.now())
                 cursor.execute(insert_book, insert_book_params)
             else:
-                update_book = 'update book_info set description=%s where book_name=%s'
+                update_book = 'update book_info set description=%s where book_name=%s and description='''
                 update_book_params = (description, book_name)
                 cursor.execute(update_book, update_book_params)
+                print(book_name)
             self.conn.commit()
         return item
 
@@ -199,3 +203,44 @@ class MySQLPipeline(object):
                 category2_id = categroy_result['category_id']
             self.conn.commit()
         return item
+
+    def handle_item_author(self, item):
+        author_name = item['a_name']
+        if not author_name:
+            return
+        with self.conn.cursor() as cursor:
+            select_author = 'select id from s_author where a_name=%s'
+            cursor.execute(select_author, author_name)
+            author_result = cursor.fetchone()
+            if author_result is None:
+                author_params = (
+                    uuid.uuid4(), author_name, item['a_dynasty'], item['a_remark'], datetime.now())
+                insert_author = 'insert into s_author(id,a_name,a_dynasty,a_remark,oper_time) values (%s,%s,%s,%s,%s)'
+                cursor.execute(insert_author, author_params)
+            else:
+                update_author = 'update s_author set a_remark=%s,oper_time=now() where a_name=%s and a_dynasty='''
+                cursor.execute(update_author, (item['a_remark'], author_name))
+            self.conn.commit()
+        return item
+
+    def handle_item_poet_category(self, item):
+        poets_category = item['category_name']
+        with self.conn.cursor() as cursor:
+            for category in poets_category:
+                select_sql = 'select id from s_poem_category where category_name=%s'
+                cursor.execute(select_sql, category)
+                result = cursor.fetchone()
+                if result is None:
+                    insert_category = 'insert into s_poem_category (category_name,oper_time) values (%s,now())'
+                    cursor.execute(insert_category, category)
+            poets_sql = 'select id from s_poets where poets_name=%s'
+            poets_name = item['poets_name']
+            cursor.execute(poets_sql, poets_name)
+            result = cursor.fetchone()
+            if result is None:
+                poets_sql = 'insert into s_poets(poets_name,poets_number,poets_remark,oper_time) values (%s,%s,%s,%s)'
+                poets_params = (poets_name, item['poets_number'], item['poets_remark'], datetime.now())
+                cursor.execute(poets_sql, poets_params)
+            self.conn.commit()
+        return item
+        pass

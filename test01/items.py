@@ -76,6 +76,19 @@ class ChapterInfoItem(scrapy.Item):
 
 
 class CtextBookItem(scrapy.Item):
-    book_category_info=scrapy.Field()
-    book_content=scrapy.Field()
-    book_name=scrapy.Field()
+    book_category_info = scrapy.Field()
+    book_content = scrapy.Field()
+    book_name = scrapy.Field()
+
+
+class PoetAuthorItem(scrapy.Item):
+    a_name = scrapy.Field()
+    a_dynasty = scrapy.Field()
+    a_remark = scrapy.Field()
+
+
+class PoetCategoryItem(scrapy.Item):
+    category_name = scrapy.Field()
+    poets_name = scrapy.Field()
+    poets_number = scrapy.Field()
+    poets_remark = scrapy.Field()
