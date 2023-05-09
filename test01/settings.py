@@ -61,6 +61,16 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashMiddleware': 725,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
 }
+# DOWNLOADER_MIDDLEWARES = {
+    # 'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    # 'scrapy_fake_useragent.RandomUserAgentMiddleware': 400,
+    # 'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 410,
+    # 'scrapy_fake_useragent.RandomProxyMiddleware': 420,
+# }
+# 通过fake-useragent代理ip，因没有代理ip暂时注销
+# USER_AGENT_ROTATION_ENABLED = True
+# USER_AGENT_TYPE = 'desktop'
+
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

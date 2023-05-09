@@ -67,7 +67,7 @@ class MySQLPipeline(object):
             return self.handle_item_chapter_content(item)
         elif item_name == 'BookInfoItem':
             return self.handle_item_book_info(item)
-        elif item_name=='CtextBookItem':
+        elif item_name == 'CtextBookItem':
             return self.handle_ctext_item(item)
 
     def handle_item_poem(self, item):
@@ -83,8 +83,8 @@ class MySQLPipeline(object):
                         uuid.uuid4(), author_name, item['dynasty'], item['author_info'], datetime.now())
                     insert_author = 'insert into s_author(id,a_name,a_dynasty,a_remark,oper_time) values (%s,%s,%s,%s,%s)'
                     cursor.execute(insert_author, author_params)
-            select_poem = 'select id from s_poem where title=%s'
-            cursor.execute(select_poem, item['title'])
+            select_poem = 'select id from s_poem where title=%s and author_name=%s'
+            cursor.execute(select_poem, (item['title'], author_name))
             poem_result = cursor.fetchone()
             if poem_result is None:
                 insert_poem = 'insert into s_poem(id,author_name,title,content,oper_time) values (%s,%s,%s,%s,%s)'
@@ -165,37 +165,37 @@ class MySQLPipeline(object):
     def handle_unknown_item_type(self, item):
         print('handle_unknown_item_type')
         return
-    
-    def handle_ctext_item(self,item):
+
+    def handle_ctext_item(self, item):
         book_info = item['book_category_info']
         if book_info is None:
             return
-        book_info_len=len(book_info)
-        if book_info_len<3:
+        book_info_len = len(book_info)
+        if book_info_len < 3:
             return
         print(book_info)
         with self.conn.cursor() as cursor:
-            category1_name=book_info[0]
-            category2_name=book_info[1]
+            category1_name = book_info[0]
+            category2_name = book_info[1]
             category1_sql = 'select category_id from c_book_category where category_name=%s'
             cursor.execute(category1_sql, category1_name)
             categroy_result = cursor.fetchone()
-            category1_id=uuid.uuid4()
+            category1_id = uuid.uuid4()
             if categroy_result is None:
                 insert_category1 = 'insert into c_book_category (category_id,category_name,oper_time) values (%s,%s,%s)'
                 insert_category1_params = (category1_id, category1_name, datetime.now())
                 cursor.execute(insert_category1, insert_category1_params)
             else:
-                category1_id=categroy_result['category_id']
-            print('category_id:'+category1_id)
+                category1_id = categroy_result['category_id']
+            print('category_id:' + category1_id)
             cursor.execute(category1_sql, category2_name)
             categroy_result = cursor.fetchone()
-            category2_id=uuid.uuid4()
+            category2_id = uuid.uuid4()
             if categroy_result is None:
                 insert_category2 = 'insert into c_book_category (category_id,category_name,parent_name,parent_id,oper_time) values (%s,%s,%s,%s,%s)'
-                insert_category2_params = (category2_id, category2_name,category1_name,category1_id, datetime.now())
+                insert_category2_params = (category2_id, category2_name, category1_name, category1_id, datetime.now())
                 cursor.execute(insert_category2, insert_category2_params)
             else:
-                category2_id=categroy_result['category_id']
+                category2_id = categroy_result['category_id']
             self.conn.commit()
         return item
