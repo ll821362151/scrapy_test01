@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 
+import mysql
 import pymysql
 
 
@@ -69,7 +70,7 @@ class MySQLPipeline(object):
             return self.handle_item_book_info(item)
         elif item_name == 'CtextBookItem':
             return self.handle_ctext_item(item)
-        elif item_name == 'AuthorItem':
+        elif item_name == 'PoetAuthorItem':
             return self.handle_item_author(item)
         elif item_name == 'PoetCategoryItem':
             return self.handle_item_poet_category(item)
@@ -159,16 +160,12 @@ class MySQLPipeline(object):
                 insert_book_params = (uuid.uuid4(), book_name, description, datetime.now())
                 cursor.execute(insert_book, insert_book_params)
             else:
-                update_book = 'update book_info set description=%s where book_name=%s and description='''
+                update_book = 'update book_info set description=%s where book_name=%s and description=""'
                 update_book_params = (description, book_name)
                 cursor.execute(update_book, update_book_params)
                 print(book_name)
             self.conn.commit()
         return item
-
-    def handle_unknown_item_type(self, item):
-        print('handle_unknown_item_type')
-        return
 
     def handle_ctext_item(self, item):
         book_info = item['book_category_info']
@@ -209,30 +206,41 @@ class MySQLPipeline(object):
         if not author_name:
             return
         with self.conn.cursor() as cursor:
-            select_author = 'select id from s_author where a_name=%s'
+            select_author = 'select id from s_author where a_name=%s and a_remark=""'
             cursor.execute(select_author, author_name)
             author_result = cursor.fetchone()
-            if author_result is None:
-                author_params = (
-                    uuid.uuid4(), author_name, item['a_dynasty'], item['a_remark'], datetime.now())
-                insert_author = 'insert into s_author(id,a_name,a_dynasty,a_remark,oper_time) values (%s,%s,%s,%s,%s)'
-                cursor.execute(insert_author, author_params)
+            if author_result:
+                # author_params = (
+                #     uuid.uuid4(), author_name, item['a_dynasty'], item['a_remark'], datetime.now())
+                # insert_author = 'insert into s_author (id,a_name,a_dynasty,a_remark,oper_time) values (%s,%s,%s,%s,%s)'
+                # cursor.execute(insert_author, author_params)
+                # print('新增：' + author_name)
+                update_author = 'update s_author set a_remark=%s,oper_time=%s where a_name=%s and a_remark=""'
+                update_author_params = (item['a_remark'], datetime.now(), author_name)
+                cursor.execute(update_author, update_author_params)
+                print("更新：" + author_name)
+                print("更新：" + item['a_remark'])
             else:
-                update_author = 'update s_author set a_remark=%s,oper_time=now() where a_name=%s and a_dynasty='''
-                cursor.execute(update_author, (item['a_remark'], author_name))
+                print(author_name)
+            # else:
+            #     update_author = 'update s_author set a_remark=%s,oper_time=%s where a_name=%s and a_remark=""'
+            #     update_author_params = (item['a_remark'], datetime.now(), author_name)
+            #     cursor.execute(update_author, update_author_params)
+            #     print("更新：" + author_name)
+            #     print("更新：" + item['a_remark'])
             self.conn.commit()
         return item
 
     def handle_item_poet_category(self, item):
-        poets_category = item['category_name']
+        # poets_category = item['category_name']
         with self.conn.cursor() as cursor:
-            for category in poets_category:
-                select_sql = 'select id from s_poem_category where category_name=%s'
-                cursor.execute(select_sql, category)
-                result = cursor.fetchone()
-                if result is None:
-                    insert_category = 'insert into s_poem_category (category_name,oper_time) values (%s,now())'
-                    cursor.execute(insert_category, category)
+            # for category in poets_category:
+            #     select_sql = 'select id from s_poem_category where category_name=%s'
+            #     cursor.execute(select_sql, category)
+            #     result = cursor.fetchone()
+            #     if result is None:
+            #         insert_category = 'insert into s_poem_category (category_name,oper_time) values (%s,now())'
+            #         cursor.execute(insert_category, category)
             poets_sql = 'select id from s_poets where poets_name=%s'
             poets_name = item['poets_name']
             cursor.execute(poets_sql, poets_name)

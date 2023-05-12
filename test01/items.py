@@ -92,3 +92,13 @@ class PoetCategoryItem(scrapy.Item):
     poets_name = scrapy.Field()
     poets_number = scrapy.Field()
     poets_remark = scrapy.Field()
+
+
+class PoemQuoteItem(scrapy.Item):
+    poem_quote = scrapy.Field()
+    poet_name = scrapy.Field()
+    poem_title = scrapy.Field()
+
+
+class PoemQuoteCategoryItem(scrapy.Item):
+    category_name = scrapy.Field()
