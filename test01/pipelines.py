@@ -62,6 +62,7 @@ class MySQLPipeline(object):
 
     def process_item(self, item, spider):
         item_name = type(item).__name__
+        print('process_item:' + item_name)
         if item_name == 'PoemItem':
             return self.handle_item_poem(item)
         elif item_name == 'ChapterContentItem':
@@ -74,6 +75,10 @@ class MySQLPipeline(object):
             return self.handle_item_author(item)
         elif item_name == 'PoetCategoryItem':
             return self.handle_item_poet_category(item)
+        elif item_name == 'PoemQuoteCategoryItem':
+            return self.handle_quote_category(item)
+        elif item_name == 'PoemQuoteItem':
+            return self.handle_quote(item)
 
     def handle_item_poem(self, item):
         # 执行SQL语句将数据存储到MySQL数据库中
@@ -180,14 +185,14 @@ class MySQLPipeline(object):
             category2_name = book_info[1]
             category1_sql = 'select category_id from c_book_category where category_name=%s'
             cursor.execute(category1_sql, category1_name)
-            categroy_result = cursor.fetchone()
+            category_result = cursor.fetchone()
             category1_id = uuid.uuid4()
-            if categroy_result is None:
+            if category_result is None:
                 insert_category1 = 'insert into c_book_category (category_id,category_name,oper_time) values (%s,%s,%s)'
                 insert_category1_params = (category1_id, category1_name, datetime.now())
                 cursor.execute(insert_category1, insert_category1_params)
             else:
-                category1_id = categroy_result['category_id']
+                category1_id = category_result['category_id']
             print('category_id:' + category1_id)
             cursor.execute(category1_sql, category2_name)
             categroy_result = cursor.fetchone()
@@ -252,3 +257,40 @@ class MySQLPipeline(object):
             self.conn.commit()
         return item
         pass
+
+    def handle_quote_category(self, item):
+        category_name = item['category_name']
+        with self.conn.cursor() as cursor:
+            quote_sql = 'select id from s_poem_quote_category where category_name=%s'
+            cursor.execute(quote_sql, category_name)
+            result = cursor.fetchone()
+            if not result:
+                insert_quote = 'insert into s_poem_quote_category (category_name,oper_time) values (%s,now())'
+                cursor.execute(insert_quote, category_name)
+            self.conn.commit()
+        return item
+
+    def handle_quote(self, item):
+        quotes_category = item['quote_category']
+        print('handle_quote:' + quotes_category)
+        with self.conn.cursor() as cursor:
+            category_sql = 'select id from s_poem_quote_category where category_name=%s'
+            cursor.execute(category_sql, quotes_category)
+            result = cursor.fetchone()
+            if result is None:
+                print(quotes_category + 'is null')
+                return
+            category_id = str(result['id'])
+            print('category_id:' + category_id)
+            poem_quote = item['poem_quote']
+            poet_name = item['poet_name']
+            poem_title = item['poem_title']
+            quote_sql = 'select id from s_poem_quote where poem_quote=%s and category_id=%s'
+            cursor.execute(quote_sql, (poem_quote, category_id))
+            result = cursor.fetchone()
+            if result is None:
+                insert_quote = 'insert into s_poem_quote(category_id,poem_quote,poet_name,poem_title,oper_time) values (%s,%s,%s,%s,%s)'
+                insert_quote_params = (category_id, poem_quote, poet_name, poem_title, datetime.now())
+                cursor.execute(insert_quote, insert_quote_params)
+            self.conn.commit()
+        return item
